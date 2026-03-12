@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CalcSpeed</title>
+
+    <!-- Configuración básica PWA -->
+    <meta name="theme-color" content="#000000">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- iOS (Apple) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Icono 192x192 (moneda azul con símbolo $) -->
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <style>
+        :root {
+            --bg: #000000;
+            --text: #ffffff;
+            --color-entero: #00d4ff;
+            --color-decimal: #ffb703;
+            --key-bg: #1a1a1a;
+            --gap-std: 8px;
+            --gap-center: 14px;
+        }
+
+        body {
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+            font-family: sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .calc {
+            width: 98%;
+            max-width: 450px;
+        }
+
+        .display-container {
+            height: 240px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* reparte espacio entre resultado e input */
+            align-items: center;
+            padding: 10px 0 15px 0;
+        }
+
+        #result-val {
+            font-size: 3.8rem;
+            font-weight: bold;
+            visibility: hidden;
+            color: #ffffff;
+            margin-top: 10px; /* margen pequeño, ya no pegado al input */
+        }
+        #result-val .span-punto {
+            color: #ffffff !important;
+        }
+
+        #input-val {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .display-line {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            width: 100%;
+        }
+        .part-entero {
+            flex: 1;
+            text-align: right;
+            padding-right: 4px;
+        }
+        .part-decimal {
+            flex: 1;
+            text-align: left;
+            padding-left: 4px;
+        }
+        #disp-entero {
+            color: var(--color-entero);
+        }
+        #disp-decimal {
+            color: var(--color-decimal);
+        }
+        .span-punto {
+            color: #ddd;  /* gris claro, casi blanco para más visibilidad */
+            font-size: 2rem;
+            width: 12px;
+            text-align: center;
+        }
+        .euro-sep {
+            font-size: 2.2rem;
+            opacity: 0.4;
+            margin-left: 15px;
+        }
+
+        .keyboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr) var(--gap-center) repeat(3, 1fr);
+            gap: var(--gap-std) 0;
+            padding-bottom: 12px; /* respiro bajo los botones */
+        }
+
+        .keyboard-grid button {
+            margin: 0 4px;
+        }
+
+        button {
+            background: var(--key-bg);
+            border: none;
+            height: 56px;
+            font-size: 2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 3px #000;
+            color: white;
+        }
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 0 #000;
+        }
+        .btn-entero {
+            color: var(--color-entero);
+        }
+        .btn-decimal {
+            color: var(--color-decimal);
+        }
+
+        .btn-c-integrated {
+            grid-column: 2 / 7;
+            color: #888;
+            font-size: 1.6rem;
+            z-index: 2;
+        }
+
+        .spacer {
+            grid-column: 4;
+            width: var(--gap-center);
+        }
+    </style>
+</head>
+<body>
+
+<div class="calc">
+    <div class="display-container">
+        <!-- OPERATIVA MATEMÁTICA / RESULTADO -->
+        <div id="result-val" class="display-line">
+            <div id="res-entero" class="part-entero">0</div>
+            <div class="span-punto">.</div>
+            <div class="part-decimal">
+                <span id="res-decimal">00</span><span class="euro-sep">$</span>
+            </div>
+        </div>
+
+        <!-- NÚMERO QUE ESTÁS INTRODUCIENDO -->
+        <div id="input-val" class="display-line">
+            <div id="disp-entero" class="part-entero">0</div>
+            <div class="span-punto">.</div>
+            <div id="disp-decimal" class="part-decimal">00</div>
+        </div>
+    </div>
+
+    <div class="keyboard-grid">
+        <!-- Filas 1 a 3: Números 1-9 -->
+        <button class="btn-entero" onclick="pressE('1')">1</button>
+        <button class="btn-entero" onclick="pressE('2')">2</button>
+        <button class="btn-entero" onclick="pressE('3')">3</button>
+        <div class="spacer"></div>
+        <button class="btn-decimal" onclick="pressD('1')">1</button>
+        <button class="btn-decimal" onclick="pressD('2')">2</button>
+        <button class="btn-decimal" onclick="pressD('3')">3</button>
+
+        <button class="btn-entero" onclick="pressE('4')">4</button>
+        <button class="btn-entero" onclick="pressE('5')">5</button>
+        <button class="btn-entero" onclick="pressE('6')">6</button>
+        <div class="spacer"></div>
+        <button class="btn-decimal" onclick="pressD('4')">4</button>
+        <button class="btn-decimal" onclick="pressD('5')">5</button>
+        <button class="btn-decimal" onclick="pressD('6')">6</button>
+
+        <button class="btn-entero" onclick="pressE('7')">7</button>
+        <button class="btn-entero" onclick="pressE('8')">8</button>
+        <button class="btn-entero" onclick="pressE('9')">9</button>
+        <div class="spacer"></div>
+        <button class="btn-decimal" onclick="pressD('7')">7</button>
+        <button class="btn-decimal" onclick="pressD('8')">8</button>
+        <button class="btn-decimal" onclick="pressD('9')">9</button>
+
+        <!-- Fila Final: 0 - C - 0 -->
+        <button class="btn-entero" onclick="pressE('0')">0</button>
+        <button class="btn-c-integrated" onclick="resetAll()">C</button>
+        <button class="btn-decimal" style="grid-column: 7;" onclick="pressD('0')">0</button>
+    </div>
+</div>
+
+<script>
+    let entero = "";
+    let decimal = "";
+    let lastActive = Date.now();
+    let calculated = false;
+
+    function u() {
+        document.getElementById('disp-entero').innerText = entero || "0";
+        document.getElementById('disp-decimal').innerText = decimal.padEnd(2, '0');
+        lastActive = Date.now();
+    }
+
+    function resetAll() {
+        entero = "";
+        decimal = "";
+        document.getElementById('result-val').style.visibility = 'hidden';
+        calculated = false;
+        u();
+    }
+
+    function pressE(v) {
+        if (calculated) resetAll();
+        if (entero.length < 3) entero += v;
+        u();
+    }
+
+    function pressD(v) {
+        if (calculated) resetAll();
+        if (decimal.length < 2) {
+            decimal += v;
+            u();
+            if (decimal.length === 2) calcular();
+        }
+    }
+
+    function calcular() {
+        const val = parseFloat((entero || "0") + "." + decimal);
+        const res = (val * 1.10) + 0.02;
+        const parts = res.toFixed(2).split('.');
+        document.getElementById('res-entero').innerText = parts[0];
+        document.getElementById('res-decimal').innerText = parts[1];
+        document.getElementById('result-val').style.visibility = 'visible';
+        calculated = true;
+    }
+
+    setInterval(() => {
+        if (Date.now() - lastActive > 30000) resetAll();
+    }, 1000);
+</script>
+
+</body>
+</html>
